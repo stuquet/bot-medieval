@@ -2,11 +2,18 @@ import discord
 from discord.ext import commands
 from private.config import token
 
-intents = discord.Intents.default()
-intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+# see https://youtu.be/g_wlZ9IhbTs
+def main():
+    intents = discord.Intents.default()
+    intents.members = True
 
-bot.load_extension("basiccommands")
+    bot = commands.Bot(command_prefix="!", intents=intents)
 
-bot.run(token)
+    bot.load_extension("basiccommands")
+
+    bot.run(token)
+
+
+if __name__ == "__main__":
+    main()
