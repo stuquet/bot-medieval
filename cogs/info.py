@@ -1,7 +1,7 @@
 from discord.ext import commands  # Again, we need this imported
 
 
-class SomeCommands(commands.Cog):
+class Info(commands.Cog):
     """A couple of simple commands."""
 
     def __init__(self, bot: commands.Bot):
@@ -16,4 +16,4 @@ class SomeCommands(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(SomeCommands(bot))
+    bot.add_cog(Info(bot))
