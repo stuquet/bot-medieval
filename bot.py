@@ -10,7 +10,9 @@ def main():
 
     bot = commands.Bot(command_prefix="!", intents=intents)
 
-    bot.load_extension("cogs.info")
+    cogs = ["cogs.info", "cogs.plague"]
+    for cog in cogs:
+        bot.load_extension(cog)
 
     bot.run(token)
 
