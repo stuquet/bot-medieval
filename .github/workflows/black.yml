@@ -26,3 +26,5 @@ jobs:
       - uses: actions/checkout@v2
       # Run black on whole source tree
       - uses: psf/black@stable
+        with:
+          options: ""
