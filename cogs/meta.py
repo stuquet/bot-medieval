@@ -1,8 +1,8 @@
 from discord.ext import commands  # Again, we need this imported
 
 
-class Info(commands.Cog):
-    """A couple of simple commands."""
+class Meta(commands.Cog):
+    """Collection of commands regarding the bot itself."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -16,4 +16,4 @@ class Info(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Info(bot))
+    bot.add_cog(Meta(bot))

@@ -57,7 +57,7 @@ def main():
 
     bot = MedievalBot(command_prefix=commands.when_mentioned_or("!"), intents=intents)
 
-    cogs = ["cogs.info", "cogs.plague"]
+    cogs = ["cogs.meta", "cogs.plague"]
     for cog in cogs:
         bot.load_extension(cog)
 
