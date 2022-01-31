@@ -7,7 +7,7 @@ class Plague(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def infect(self, ctx: discord.Context, user: discord.Member):
+    async def infect(self, ctx: commands.Context, user: discord.Member):
         role = discord.utils.get(lambda r: r.name == "Plague", ctx.guild.roles)
         channel = self.bot.get_channel(1234567890)
         await user.add_roles(role)
@@ -19,7 +19,7 @@ class Plague(commands.Cog):
     async def on_voice_state_update(
         self,
         member: discord.Member,
-        ctx: discord.Context,
+        ctx: commands.Context,
         before: discord.VoiceState,
         after: discord.VoiceState,
     ):
