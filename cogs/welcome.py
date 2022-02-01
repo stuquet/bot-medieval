@@ -23,7 +23,19 @@ class Welcome(commands.Cog):
         """Send a message in the system channel to ask an Administrator to run the
         setup command.
         """
-        pass
+        if guild.system_channel:
+            try:
+                await guild.system_channel.send(
+                    f"Hello! I'm {self.bot.user.mention}!\n"
+                    "You can configure a welcome message and default role for new "
+                    "members with the `welcome setup` command. "
+                    "I hope you will enjoy having me in your server :)"
+                )
+            except discord.Forbidden:
+                print(
+                    "Unable to send message to system channel of guild "
+                    f"{guild.name} ({guild.id})"
+                )
 
     @commands.Cog.listener("on_member_join")
     async def on_member_join(self, member: discord.Member):
