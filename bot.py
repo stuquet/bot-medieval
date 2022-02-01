@@ -66,10 +66,12 @@ async def create_db_connection(db_name):
 def main():
     intents = discord.Intents.default()
     intents.members = True
+    allowed_mentions = discord.AllowedMentions.none()
 
     bot = MedievalBot(
         command_prefix=commands.when_mentioned_or("!"),
         intents=intents,
+        allowed_mentions=allowed_mentions,
         # db_name="bot.db",
     )
 
