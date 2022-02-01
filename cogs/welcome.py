@@ -71,6 +71,7 @@ class Welcome(commands.Cog):
         You must have the Administrator permission to use this command.
         """
         print(flags)
+        await self._update_welcome_data(ctx.guild, flags)
 
     async def _create_tables(self):
         """Create the necessary DB tables if they do not exist."""
@@ -102,6 +103,32 @@ class Welcome(commands.Cog):
             row = await c.fetchone()
 
         return row
+
+    async def _update_welcome_data(self, guild, flags):
+        await self.bot.db.execute(
+            """
+            INSERT INTO welcome_data
+            VALUES (:default_role_id,
+                    :guild_id,
+                    :welcome_channel_id,
+                    :welcome_message)
+                ON CONFLICT(guild_id) DO
+            UPDATE
+               SET default_role_id = COALESCE(:default_role_id, default_role_id),
+                   welcome_channel_id = COALESCE(:welcome_channel_id,
+                        welcome_channel_id),
+                   welcome_message = COALESCE(:welcome_message, welcome_message)
+             WHERE guild_id = :guild_id
+            """,
+            dict(
+                guild_id=guild.id,
+                default_role_id=flags.role.id if flags.role else None,
+                welcome_channel_id=flags.channel.id if flags.channel else None,
+                welcome_message=flags.message,
+            ),
+        )
+
+        await self.bot.db.commit()
 
 
 def setup(bot):
