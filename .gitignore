@@ -130,3 +130,6 @@ dmypy.json
 
 # Private folder
 private/
+
+# Databases
+*.db

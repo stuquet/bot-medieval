@@ -67,7 +67,11 @@ def main():
     intents = discord.Intents.default()
     intents.members = True
 
-    bot = MedievalBot(command_prefix=commands.when_mentioned_or("!"), intents=intents)
+    bot = MedievalBot(
+        command_prefix=commands.when_mentioned_or("!"),
+        intents=intents,
+        # db_name="bot.db",
+    )
 
     cogs = ["cogs.meta", "cogs.plague", "cogs.welcome"]
     for cog in cogs:
