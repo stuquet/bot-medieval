@@ -26,7 +26,19 @@ class MedievalBot(commands.Bot):
         await super().close()
 
     async def on_ready(self):
-        permissions = discord.Permissions.text()
+        # permissions needed for bot to function, subject to change
+        permissions = discord.Permissions(
+            add_reactions=True,
+            attach_files=True,
+            change_nickname=True,
+            connect=True,
+            manage_channels=True,
+            manage_messages=True,
+            manage_nicknames=True,
+            manage_roles=True,
+            read_messages=True,
+            send_messages=True,
+        )
         url = discord.utils.oauth_url(self.user.id, permissions=permissions)
         print(
             f"Logged in as {self.user.name} (ID:{self.user.id})\n"
