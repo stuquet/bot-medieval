@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 
-class WelcomeDataFlags(commands.FlagConverter):
+class WelcomeSetupFlags(commands.FlagConverter):
     channel: Optional[discord.TextChannel]
     role: Optional[discord.Role]
     message: Optional[str] = commands.flag(aliases=["content"])
@@ -57,21 +57,94 @@ class Welcome(commands.Cog):
 
         await member.add_roles(role)
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     @commands.has_permissions(administrator=True)
-    async def setup(self, ctx: commands.Context, *, flags: WelcomeDataFlags):
+    async def welcome(self, ctx):
+        """Parent command for the welcoming functionality.
+        Invoke without subcommand to list the current configuration.
+
+        You must have Administrator permissions to use this command.
+        """
+        row = await self._get_welcome_data(ctx.guild)
+
+        if row:
+            data = dict(
+                role=ctx.guild.get_role(row["default_role_id"]),
+                channel=ctx.guild.get_channel(row["welcome_channel_id"]),
+                message=row["welcome_message"],
+            )
+            content = self._format_welcome_confirmation(data)
+            if content:
+                return await ctx.reply(content)
+
+        await ctx.reply(
+            "You did not configure the welcome feature yet. Look at "
+            f"`{ctx.prefix}help welcome setup` for tips."
+        )
+
+    @welcome.command(name="setup")
+    @commands.has_permissions(administrator=True)
+    async def welcome_setup(self, ctx: commands.Context, *, flags: WelcomeSetupFlags):
         """Setup the data needed for the welcome feature.
+        You can use as many flags as wanted, specifying a particular flag will
+        overwrite what is currently configured. Reset the config with `welcome reset`.
 
         Flags:
-            channel:
-            message:
+            channel: The channel to send the welcome messages to. Channel name, ID
+                     or mention work.
+            message: The content of the message to be sent.
                 alias: content
-            role:
+            role: The default role to add to every new member.
 
         You must have the Administrator permission to use this command.
         """
-        print(flags)
+        content = self._format_welcome_confirmation(
+            dict(role=flags.role, channel=flags.channel, message=flags.message)
+        )
+        if content:
+            await ctx.reply(content)
+        else:
+            await ctx.reply(
+                "You did not provide any values. Look at "
+                f"`{ctx.prefix}help welcome setup` for tips."
+            )
         await self._update_welcome_data(ctx.guild, flags)
+
+    @welcome.command(name="reset")
+    @commands.has_permissions(administrator=True)
+    async def welcome_reset(self, ctx: commands.Context):
+        """Reset the welcome data for the guild.
+
+        You must have Administrator permission to use this command.
+        """
+        await ctx.reply(
+            "Removing all welcome configuration. You can run the "
+            f"`{ctx.prefix}welcome setup` command again to enter new values."
+        )
+        await self._remove_welcome_data(ctx.guild)
+
+    @welcome.error
+    @welcome_setup.error
+    @welcome_reset.error
+    async def welcome_error(self, ctx, error):
+        """Error handler for the welcome command group."""
+
+        if isinstance(error, (commands.RoleNotFound, commands.ChannelNotFound)):
+            await ctx.reply(error)
+
+        else:
+            raise error
+
+    def _format_welcome_confirmation(self, data: dict):
+        content = ""
+        if data["role"]:
+            content += f"Default role: {data['role'].mention}.\n"
+        if data["channel"]:
+            content += f"Welcome channel: {data['channel'].mention}.\n"
+        if data["message"]:
+            content += f"Welcome message:\n```\n{data['message']}\n```\n"
+
+        return content
 
     async def _create_tables(self):
         """Create the necessary DB tables if they do not exist."""
@@ -126,6 +199,17 @@ class Welcome(commands.Cog):
                 welcome_channel_id=flags.channel.id if flags.channel else None,
                 welcome_message=flags.message,
             ),
+        )
+
+        await self.bot.db.commit()
+
+    async def _remove_welcome_data(self, guild):
+        await self.bot.db.execute(
+            """
+            DELETE FROM welcome_data
+             WHERE guild_id = :guild_id
+            """,
+            dict(guild_id=guild.id),
         )
 
         await self.bot.db.commit()
