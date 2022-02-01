@@ -79,7 +79,7 @@ class Welcome(commands.Cog):
             """
             CREATE TABLE IF NOT EXISTS welcome_data(
                 default_role_id    INTEGER,
-                guild_id           INTEGER NOT NULL,
+                guild_id           INTEGER NOT NULL UNIQUE,
                 welcome_channel_id INTEGER,
                 welcome_message    TEXT
             )
