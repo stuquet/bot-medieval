@@ -60,25 +60,43 @@ class Economy(commands.Cog):
     ):
         """Send an amount of money to the specified member."""
 
-        pass
+        await self.transfer_money(amount, to_member, ctx.author)
+        await ctx.reply(f"You sent `{amount:.2f}` to {to_member.mention}!")
 
-    async def grant_money(self, amount: float, member: discord.Member):
+    async def grant_money(
+        self, amount: float, member: discord.Member, description="Income"
+    ):
         """Helper method to grant an amount of money to a member's account."""
 
-        pass
+        await self._add_transaction(
+            amount=amount, member=member, description=description
+        )
 
-    async def spend_money(self, amount: float, member: discord.Member):
+    async def spend_money(
+        self, amount: float, member: discord.Member, description="Spending"
+    ):
         """Helper method to take an amount of money from a member's account."""
 
-        pass
+        await self._add_transaction(
+            amount=-amount, member=member, description=description
+        )
 
     async def transfer_money(
-        self, amount: float, to_member: discord.Member, from_member: discord.Member
+        self,
+        amount: float,
+        to_member: discord.Member,
+        from_member: discord.Member,
+        description="Money transfer",
     ):
         """Helper method to transfer an amount of money from one member's account
         to another's.
         """
-        pass
+        await self._add_transaction(
+            amount=amount, member=to_member, description=description
+        )
+        await self._add_transaction(
+            amount=-amount, member=from_member, description=description
+        )
 
     async def _create_tables(self):
         """Create the necessary DB tables if they do not exist."""
@@ -98,12 +116,7 @@ class Economy(commands.Cog):
         await self.bot.db.commit()
 
     async def _add_transaction(
-        self,
-        *,
-        amount: float,
-        description: str,
-        timestamp: datetime,
-        member: discord.Member,
+        self, *, amount: float, description: str, member: discord.Member,
     ):
         """Add a transaction to the member's account. `amount` can be negative."""
 
@@ -121,7 +134,7 @@ class Economy(commands.Cog):
                 description=description,
                 guild_id=member.guild.id,
                 member_id=member.id,
-                time=timestamp,
+                time=discord.utils.utcnow(),
             ),
         )
 
