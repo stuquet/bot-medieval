@@ -1,3 +1,5 @@
+import datetime
+
 import aiosqlite
 import discord
 from discord.ext import commands
@@ -56,9 +58,15 @@ class MedievalBot(commands.Bot):
 async def create_db_connection(db_name):
     """Create the connection to the SQLite database."""
 
+    # Modify the datetime/timestamp adapters to work with timezone aware data
+    aiosqlite.register_converter(
+        "TIMESTAMP", lambda dt: datetime.datetime.fromisoformat(dt.decode())
+    )
+
     db = await aiosqlite.connect(db_name, detect_types=1)  # 1: parse declared types
     db.row_factory = aiosqlite.Row  # allow for name-based access of data columns
     await db.execute("PRAGMA foreign_keys = ON")  # allow for cascade deletion
+
     return db
 
 
