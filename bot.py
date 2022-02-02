@@ -75,7 +75,7 @@ def main():
         # db_name="bot.db",
     )
 
-    cogs = ["cogs.meta", "cogs.plague", "cogs.welcome"]
+    cogs = ["cogs.meta", "cogs.plague", "cogs.welcome", "cogs.economy"]
     for cog in cogs:
         bot.load_extension(cog)
 
