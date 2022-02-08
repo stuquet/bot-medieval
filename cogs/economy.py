@@ -147,8 +147,9 @@ class Economy(commands.Cog):
             SELECT SUM(amount) AS balance
               FROM economy_transaction
              WHERE member_id=:member_id
+               AND guild_id=:guild_id
             """,
-            dict(member_id=member.id),
+            dict(member_id=member.id, guild_id=member.guild.id),
         ) as c:
             row = await c.fetchone()
 
@@ -160,10 +161,11 @@ class Economy(commands.Cog):
             SELECT amount, description, time
               FROM economy_transaction
              WHERE member_id=:member_id
+               AND guild_id=:guild_id
              ORDER BY time DESC
              LIMIT :limit
             """,
-            dict(member_id=member.id, limit=limit),
+            dict(member_id=member.id, guild_id=member.guild.id, limit=limit),
         ) as c:
             rows = await c.fetchall()
 
