@@ -145,7 +145,7 @@ class Economy(commands.Cog):
     async def _get_balance(self, member):
         async with self.bot.db.execute(
             """
-            SELECT SUM(amount) AS balance
+            SELECT COALESCE(SUM(amount), 0) AS balance
               FROM economy_transaction
              WHERE member_id=:member_id
                AND guild_id=:guild_id
