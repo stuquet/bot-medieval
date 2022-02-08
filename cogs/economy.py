@@ -53,7 +53,22 @@ class Economy(commands.Cog):
     async def balance_top(self, ctx: commands.Context):
         """List members by top balance."""
 
-        pass
+        balances = await self._get_top_balances(ctx.guild)
+        members = "\n".join(
+            [f"{ctx.guild.get_member(bal['member_id'])}" for bal in balances]
+        )
+        totals = "\n".join([f"{bal['balance']:.2f}" for bal in balances])
+
+        embed = (
+            discord.Embed(
+                title="Top Balances",
+                description=f"Leaderboard for {ctx.guild.name}",
+                color=discord.Color.yellow(),
+            )
+            .add_field(name="Member", value=members, inline=True)
+            .add_field(name="Balance", value=totals, inline=True)
+        )
+        await ctx.reply(embed=embed)
 
     @commands.command(name="send")
     async def send_money(
@@ -155,6 +170,21 @@ class Economy(commands.Cog):
             row = await c.fetchone()
 
         return row["balance"]
+
+    async def _get_top_balances(self, guild, limit=10):
+        async with self.bot.db.execute(
+            """
+            SELECT member_id, COALESCE(SUM(amount), 0) AS balance
+              FROM economy_transaction
+             WHERE guild_id=:guild_id
+             GROUP BY member_id
+             ORDER BY balance DESC
+            """,
+            dict(guild_id=guild.id),
+        ) as c:
+            rows = await c.fetchall()
+
+        return rows
 
     async def _get_transactions(self, member, limit=10):
         async with self.bot.db.execute(
