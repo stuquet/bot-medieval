@@ -18,8 +18,8 @@ class Economy(commands.Cog):
         if member is None:
             member = ctx.author
 
-        row = await self._get_balance(member)
-        await ctx.reply(f"The balance for {member.mention} is `{row['balance']:.2f}`")
+        balance = await self._get_balance(member)
+        await ctx.reply(f"The balance for {member.mention} is `{balance:.2f}`")
 
     @balance.command(name="history")
     async def balance_history(self, ctx, *, member: discord.Member = None):
@@ -33,8 +33,8 @@ class Economy(commands.Cog):
         amounts = "\n".join([f"{row['amount']:.2f}" for row in rows])
         descriptions = "\n".join([row["description"] for row in rows])
         times = "\n".join([discord.utils.format_dt(row["time"]) for row in rows])
-        row = await self._get_balance(member)
-        balance = row["balance"]
+        )
+        balance = await self._get_balance(member)
 
         embed = (
             discord.Embed(
@@ -153,7 +153,7 @@ class Economy(commands.Cog):
         ) as c:
             row = await c.fetchone()
 
-        return row
+        return row["balance"]
 
     async def _get_transactions(self, member, limit=10):
         async with self.bot.db.execute(
