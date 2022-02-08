@@ -4,6 +4,15 @@ import discord
 from discord.ext import commands
 
 
+class InsufficentFundsError(Exception):
+    """Exception raised when trying to do a transaction with insufficient funds."""
+
+    def __init__(self, funds, amount):
+        amount = amount if amount >= 0 else -amount
+        message = f"Insufficient funds ({funds:.2f}) for amount {amount:.2f}."
+        super().__init__(message)
+
+
 class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -70,14 +79,37 @@ class Economy(commands.Cog):
         )
         await ctx.reply(embed=embed)
 
-    @commands.command(name="send")
-    async def send_money(
+    @commands.command(aliases=["pay"])
+    async def send(
         self, ctx: commands.Context, amount: float, *, to_member: discord.Member
     ):
-        """Send an amount of money to the specified member."""
+        """Send an amount of money to the specified member.
+        The amount must be above 0.
+        The member cannot be yourself.
+        """
+        if ctx.author == to_member:
+            raise commands.UserInputError("Cannot send money to self.")
+
+        if amount <= 0:
+            raise commands.UserInputError("Cannot send amounts below on equal to zero.")
 
         await self.transfer_money(amount, to_member, ctx.author)
         await ctx.reply(f"You sent `{amount:.2f}` to {to_member.mention}!")
+
+    @send.error
+    async def send_error(self, ctx, error):
+        """Error handler for the send command."""
+
+        error = getattr(error, "original", error)
+
+        if isinstance(
+            error,
+            (commands.BadArgument, commands.UserInputError, InsufficentFundsError),
+        ):
+            await ctx.reply(error)
+
+        else:
+            raise error
 
     async def grant_money(
         self, amount: float, member: discord.Member, description="Income"
@@ -135,6 +167,11 @@ class Economy(commands.Cog):
         self, *, amount: float, description: str, member: discord.Member,
     ):
         """Add a transaction to the member's account. `amount` can be negative."""
+
+        if amount <= 0:
+            current_balance = await self._get_balance(member)
+            if current_balance < abs(amount):
+                raise InsufficentFundsError(current_balance, amount)
 
         last_insert_rowid = await self.bot.db.execute_insert(
             """
