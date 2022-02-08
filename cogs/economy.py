@@ -32,7 +32,8 @@ class Economy(commands.Cog):
         rows = await self._get_transactions(member)
         amounts = "\n".join([f"{row['amount']:.2f}" for row in rows])
         descriptions = "\n".join([row["description"] for row in rows])
-        times = "\n".join([discord.utils.format_dt(row["time"]) for row in rows])
+        times = "\n".join(
+            [discord.utils.format_dt(row["time"], style="D") for row in rows]
         )
         balance = await self._get_balance(member)
 
