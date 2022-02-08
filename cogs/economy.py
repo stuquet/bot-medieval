@@ -43,9 +43,9 @@ class Economy(commands.Cog):
                 description=f"Total Balance: {balance:.2f}",
                 color=discord.Color.yellow(),
             )
-            .add_field(name="Amount", value=amounts, inline=True)
-            .add_field(name="Description", value=descriptions, inline=True)
-            .add_field(name="Time", value=times, inline=True)
+            .add_field(name="Amount", value=amounts or "None", inline=True)
+            .add_field(name="Description", value=descriptions or "None", inline=True)
+            .add_field(name="Time", value=times or "None", inline=True)
         )
         await ctx.reply(embed=embed)
 
