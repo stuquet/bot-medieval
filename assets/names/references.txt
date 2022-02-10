@@ -1,0 +1,7 @@
+https://www.mithrilandmages.com/index.php
+    female.txt
+    male.txt
+    surname.txt
+
+http://www.svincent.com/MagicJar/Economics/MedievalOccupations.html
+    title.txt
