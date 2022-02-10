@@ -70,6 +70,15 @@ async def create_db_connection(db_name):
     return db
 
 
+async def _prefix_callable(bot, message):
+    meta_cog = bot.get_cog("Meta")
+    if meta_cog:
+        guild_prefix = await meta_cog.get_guild_prefixes(message.guild)
+    else:
+        guild_prefix = ["!"]  # add a default prefix
+    return commands.when_mentioned_or(*guild_prefix)(bot, message)
+
+
 # see https://youtu.be/g_wlZ9IhbTs
 def main():
     intents = discord.Intents.default()
@@ -77,7 +86,8 @@ def main():
     allowed_mentions = discord.AllowedMentions.none()
 
     bot = MedievalBot(
-        command_prefix=commands.when_mentioned_or("!"),
+        # command_prefix=commands.when_mentioned_or("!"),
+        command_prefix=_prefix_callable,
         intents=intents,
         allowed_mentions=allowed_mentions,
         # db_name="bot.db",
