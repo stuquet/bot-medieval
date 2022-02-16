@@ -130,6 +130,8 @@ dmypy.json
 
 # Private folder
 private/
+test_bot.py
+cogs/tests.py
 
 # Databases
 *.db
