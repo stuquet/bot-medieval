@@ -86,11 +86,10 @@ def main():
     allowed_mentions = discord.AllowedMentions.none()
 
     bot = MedievalBot(
-        # command_prefix=commands.when_mentioned_or("!"),
         command_prefix=_prefix_callable,
         intents=intents,
         allowed_mentions=allowed_mentions,
-        # db_name="bot.db",
+        db_name="bot.db",
     )
 
     cogs = [
