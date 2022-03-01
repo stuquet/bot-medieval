@@ -1,6 +1,7 @@
 from pathlib import Path
 import random
 
+import discord
 from discord.ext import commands
 
 from utils.views import Confirm
@@ -69,7 +70,12 @@ class Roleplay(commands.Cog):
         await view.wait()
 
         if view.value:
-            await ctx.author.edit(nick=random_name)
+            try:
+                await ctx.author.edit(nick=random_name)
+
+            except discord.Forbidden:
+                # ignore if author's top role is above the bot's
+                pass
 
 
 def setup(bot):
