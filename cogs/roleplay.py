@@ -15,45 +15,52 @@ def load_text_list(path):
 
 
 class RandomMedievalNameGenerator:
-    def __init__(self):
-        assets_path = ASSETS / "names"
-        self._female_names = load_text_list(assets_path / "female.txt")
-        self._male_names = load_text_list(assets_path / "male.txt")
-        self._surnames = load_text_list(assets_path / "surname.txt")
-        self._titles = load_text_list(assets_path / "title.txt")
+    _assets_path = ASSETS / "names"
+    _female_names = load_text_list(_assets_path / "female.txt")
+    _male_names = load_text_list(_assets_path / "male.txt")
+    _surnames = load_text_list(_assets_path / "surname.txt")
+    _titles = load_text_list(_assets_path / "title.txt")
 
-    def female_name(self):
-        return random.choice(self._female_names)
+    @classmethod
+    def female_name(cls):
+        return random.choice(cls._female_names)
 
-    def male_name(self):
-        return random.choice(self._male_names)
+    @classmethod
+    def male_name(cls):
+        return random.choice(cls._male_names)
 
-    def name(self):
-        return random.choice(self._female_names + self._male_names)
+    @classmethod
+    def name(cls):
+        return random.choice(cls._female_names + cls._male_names)
 
-    def surname(self):
-        return random.choice(self._surnames)
+    @classmethod
+    def surname(cls):
+        return random.choice(cls._surnames)
 
-    def full_name(self):
-        return f"{self.name()} of {self.surname()}"
+    @classmethod
+    def full_name(cls):
+        return f"{cls.name()} of {cls.surname()}"
 
-    def title(self):
-        return random.choice(self._titles)
+    @classmethod
+    def title(cls):
+        return random.choice(cls._titles)
 
-    def full_name_with_title(self):
-        return f"{self.full_name()}, {self.title()}"
+    @classmethod
+    def full_name_with_title(cls):
+        return f"{cls.full_name()}, {cls.title()}"
 
 
 class Roleplay(commands.Cog):
+    """Collections of commands and utilities for medieval roleplay features."""
+
     def __init__(self, bot):
         self.bot = bot
-        self.random_name_generator = RandomMedievalNameGenerator()
 
     @commands.command()
     async def rname(self, ctx):
         """Generate a random medieval name that you can apply to yourself."""
 
-        random_name = self.random_name_generator.full_name_with_title()
+        random_name = RandomMedievalNameGenerator.full_name_with_title()
         view = Confirm()
 
         await ctx.reply(
