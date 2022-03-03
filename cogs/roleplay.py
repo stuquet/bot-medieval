@@ -1,11 +1,14 @@
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+import io
 from pathlib import Path
 import random
 
 import discord
 from discord.utils import snowflake_time
 from discord.ext import commands
+import matplotlib.pyplot as plt
+import numpy as np
 
 from utils.views import Confirm
 
@@ -30,6 +33,24 @@ def _get_level_from_xp(xp):
         level += 1
 
     return level, remaining_xp
+
+
+def make_rank_history_graph(history):
+    data = [[snowflake_time(row["message_id"]), row["xp"]] for row in history]
+    data.sort(key=lambda x: x[0])
+    time, xp = zip(*data)
+
+    fig, ax = plt.subplots()
+    ax.plot(time, np.cumsum(xp))
+    ax.set_xlabel("Date")
+    ax.tick_params(axis="x", rotation=45)
+    ax.set_ylabel("Experience")
+
+    graph = io.BytesIO()
+    fig.savefig(graph, format="png")
+    graph.seek(0)
+
+    return graph
 
 
 class RandomMedievalNameGenerator:
@@ -140,13 +161,38 @@ class Roleplay(commands.Cog):
         if new_level != level:
             print("Level up!")
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(aliases=["level", "lvl"], invoke_without_command=True)
     async def rank(self, ctx, *, member: discord.Member = None):
+        """Show the level and progress of the member."""
+
         if member is None:
             member = ctx.author
-        _user = await self.bot.fetch_user(member.id)
 
-        experience = await self._get_experience(member)
+        embed = await self._rank_embed(member)
+
+        await ctx.reply(embed=embed)
+
+    @rank.command(name="history")
+    async def rank_history(self, ctx, *, member: discord.Member = None):
+        """Show the level progress over time of the member."""
+
+        if member is None:
+            member = ctx.author
+
+        rows = await self._get_experience(member)
+        embed = await self._rank_embed(member, rows)
+        filename = "rank_history.png"
+        embed.set_image(url=f"attachment://{filename}")
+
+        graph = await self.bot.loop.run_in_executor(None, make_rank_history_graph, rows)
+
+        await ctx.reply(embed=embed, file=discord.File(graph, filename=filename))
+
+    async def _rank_embed(self, member, rows=None):
+        if rows is None:
+            rows = await self._get_experience(member)
+
+        experience = sum([row["xp"] for row in rows])
         level, remaining_xp = _get_level_from_xp(experience)
         next_level_xp = _get_next_level_xp(level)
         # xp_until_next_level = next_level_xp - remaining_xp
@@ -167,6 +213,7 @@ class Roleplay(commands.Cog):
         # add zero-width-space so it renders fine on mobile
         progress = "\u200B" + filled * progress_10 + "⬛" * (10 - progress_10)
 
+        _user = await self.bot.fetch_user(member.id)
         embed = (
             discord.Embed(
                 title=f"Rank for {member.display_name}",
@@ -178,11 +225,7 @@ class Roleplay(commands.Cog):
             .set_thumbnail(url=member.avatar.url)
         )
 
-        await ctx.reply(embed=embed)
-
-    @rank.command(name="history")
-    async def rank_history(self, ctx, *, member: discord.Member = None):
-        pass
+        return embed
 
     async def _create_tables(self):
         """Create the necessary DB tables if they do not exist."""
@@ -222,16 +265,16 @@ class Roleplay(commands.Cog):
     async def _get_experience(self, member):
         async with self.bot.db.execute(
             """
-            SELECT COALESCE(SUM(xp), 0) AS experience
+            SELECT message_id, xp
               FROM roleplay_experience
              WHERE member_id=:member_id
                AND guild_id=:guild_id
             """,
             dict(guild_id=member.guild.id, member_id=member.id,),
         ) as c:
-            row = await c.fetchone()
+            rows = await c.fetchall()
 
-        return row["experience"]
+        return rows
 
 
 def setup(bot):
