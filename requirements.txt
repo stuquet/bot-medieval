@@ -1,4 +1,4 @@
 aiosqlite==0.17.0
-git+git://github.com/Rapptz/discord.py.git@master
+git+git://github.com/Rapptz/discord.py.git@45d498c1b76deaf3b394d17ccf56112fa691d160
 numpy==1.21.5
 matplotlib==3.5.1
